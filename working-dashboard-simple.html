@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Transparency Dashboard - Working Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .dashboard {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .ad-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+        }
+
+        .ad-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Ad Transparency Dashboard</h1>
+            <p>Belgium & France Market Analysis - Meta vs Google Platforms</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="control-group">
+                <label for="analysis-type">Analysis Type</label>
+                <select id="analysis-type">
+                    <option value="brand-details">🔍 Brand Deep Dive</option>
+                    <option value="sector-overview">📊 Sector Overview</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="industry">Industry</label>
+                <select id="industry">
+                    <option value="automotive">🚗 Automotive</option>
+                    <option value="fashion">👕 Fashion</option>
+                    <option value="technology">💻 Technology</option>
+                    <option value="food">🍔 Food & Beverage</option>
+                    <option value="healthcare">🏥 Healthcare</option>
+                    <option value="finance">💰 Finance</option>
+                </select>
+            </div>
+
+            <div class="control-group" id="brand-group">
+                <label for="brand-name">Brand Name</label>
+                <input type="text" id="brand-name" placeholder="e.g., BMW, Nike, SAP, Coca-Cola">
+            </div>
+
+            <div class="control-group">
+                <label for="country-filter">Country Filter</label>
+                <select id="country-filter">
+                    <option value="all">🌍 Belgium & France</option>
+                    <option value="belgium">🇧🇪 Belgium Only</option>
+                    <option value="france">🇫🇷 France Only</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="analyzeData()">🔍 Analyze</button>
+
+            <div id="results" class="results"></div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeData() {
+            const analysisType = document.getElementById('analysis-type').value;
+            const industry = document.getElementById('industry').value;
+            const brandName = document.getElementById('brand-name').value;
+            const countryFilter = document.getElementById('country-filter').value;
+            const resultsDiv = document.getElementById('results');
+
+            // Show loading
+            resultsDiv.innerHTML = '<div class="loading">🔄 Analyzing data...</div>';
+
+            try {
+                let data;
+
+                if (analysisType === 'brand-details') {
+                    if (!brandName || brandName.trim() === '') {
+                        throw new Error('Please enter a brand name for detailed analysis');
+                    }
+                    data = await getBrandDetails(brandName.trim(), industry, countryFilter);
+                    displayBrandResults(data);
+                } else {
+                    data = await getSectorOverview(industry, countryFilter);
+                    displaySectorResults(data);
+                }
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Analysis Failed</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p><strong>Troubleshooting:</strong></p>
+                        <ul>
+                            <li>Check your network connection</li>
+                            <li>Try refreshing the page (Ctrl+F5)</li>
+                            <li>Verify the brand name spelling</li>
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+
+        async function getBrandDetails(brandName, industry, countryFilter) {
+            const response = await fetch('/api/brands/brand-details', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    brand_name: brandName,
+                    industry: industry,
+                    currency: 'EUR',
+                    country_filter: countryFilter
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            return data;
+        }
+
+        async function getSectorOverview(industry, countryFilter) {
+            const response = await fetch('/api/brands/sector-overview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    industry: industry,
+                    currency: 'EUR',
+                    country_filter: countryFilter
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            return data;
+        }
+
+        function displayBrandResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const countryFilter = document.getElementById('country-filter').value;
+            const regionText = countryFilter === 'all' ? 'Belgium & France' : 
+                             countryFilter === 'belgium' ? 'Belgium' : 'France';
+
+            const html = `
+                <div class="ad-card">
+                    <h3>🎯 Brand Analysis: ${data.brand_name}</h3>
+                    <p><strong>Industry:</strong> ${data.industry.toUpperCase()} | <strong>Region:</strong> ${regionText}</p>
+                    <p><strong>Total Annual Ad Spend:</strong> ${data.financial_data.total_ad_spend_formatted}</p>
+                    
+                    <h4>🌍 Country Breakdown</h4>
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.financial_data.belgium_ad_spend_formatted}</div>
+                            <div class="metric-label">Belgium Spend</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.financial_data.france_ad_spend_formatted}</div>
+                            <div class="metric-label">France Spend</div>
+                        </div>
+                    </div>
+                    
+                    <h4>📱 Platform Breakdown</h4>
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.platform_breakdown.meta_estimated_formatted}</div>
+                            <div class="metric-label">Meta Ads (${data.platform_breakdown.meta_percentage}%)</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.platform_breakdown.google_estimated_formatted}</div>
+                            <div class="metric-label">Google Ads (${data.platform_breakdown.google_percentage}%)</div>
+                        </div>
+                    </div>
+                    
+                    <h4>🎬 Ad Type Breakdown</h4>
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.ad_type_breakdown.video_percentage}%</div>
+                            <div class="metric-label">Video Ads</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.ad_type_breakdown.video_spend_formatted}</div>
+                            <div class="metric-label">Video Investment</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.ad_type_breakdown.display_percentage}%</div>
+                            <div class="metric-label">Display Ads</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.ad_type_breakdown.display_spend_formatted}</div>
+                            <div class="metric-label">Display Investment</div>
+                        </div>
+                    </div>
+                    
+                    <h4>🏆 Competitive Position</h4>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <p><strong>Industry Ranking:</strong> #${data.competitive_position.rank_in_industry} of ${data.competitive_position.total_brands_in_industry}</p>
+                        <p><strong>Industry Leader:</strong> ${data.competitive_position.industry_leader}</p>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function displaySectorResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const countryFilter = document.getElementById('country-filter').value;
+            const regionText = countryFilter === 'all' ? 'Belgium & France' : 
+                             countryFilter === 'belgium' ? 'Belgium' : 'France';
+
+            const html = `
+                <div class="ad-card">
+                    <h3>📊 ${regionText} Sector Overview: ${data.industry.toUpperCase()}</h3>
+                    <p><strong>Region:</strong> ${regionText} | <strong>Currency:</strong> ${data.currency}</p>
+                    
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.sector_totals.total_ad_spend_formatted}</div>
+                            <div class="metric-label">Total Ad Spend</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.sector_totals.total_brands}</div>
+                            <div class="metric-label">Total Brands</div>
+                        </div>
+                    </div>
+                    
+                    <h4>💰 Top Spenders</h4>
+                    <div style="display: grid; gap: 10px; margin: 15px 0;">
+                        ${data.top_spenders ? data.top_spenders.slice(0, 5).map((brand, i) => `
+                            <div style="display: flex; justify-content: space-between; padding: 10px; background: ${i % 2 === 0 ? '#f8f9fa' : 'white'}; border-radius: 6px;">
+                                <span><strong>#${i+1}</strong> ${brand.name}</span>
+                                <span style="font-weight: bold; color: #28a745;">${brand.total_spend_formatted}</span>
+                            </div>
+                        `).join('') : '<p>No brand data available</p>'}
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Show/hide brand input based on analysis type
+        document.getElementById('analysis-type').addEventListener('change', function() {
+            const brandGroup = document.getElementById('brand-group');
+            if (this.value === 'brand-details') {
+                brandGroup.style.display = 'block';
+            } else {
+                brandGroup.style.display = 'none';
+            }
+        });
+
+        // Initialize with brand details selected
+        document.getElementById('analysis-type').dispatchEvent(new Event('change'));
+    </script>
+</body>
+</html>

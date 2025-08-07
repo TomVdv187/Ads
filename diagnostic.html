@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Platform Split Diagnostic</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .brand-test { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Platform Split Diagnostic</h1>
+    <p>This page tests different brands to show their Meta vs Google splits.</p>
+    
+    <button onclick="testAllBrands()">Test All Brands</button>
+    <div id="results"></div>
+
+    <script>
+        async function testBrand(brandName, industry) {
+            try {
+                const response = await fetch('/api/brands/brand-details', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        brand_name: brandName,
+                        industry: industry,
+                        currency: 'EUR'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    return { success: false, error: data.error };
+                }
+                
+                return {
+                    success: true,
+                    brand: data.brand_name,
+                    industry: data.industry,
+                    total: data.financial_data.total_ad_spend_formatted,
+                    meta_amount: data.platform_breakdown.meta_estimated_formatted,
+                    meta_percent: data.platform_breakdown.meta_percentage,
+                    google_amount: data.platform_breakdown.google_estimated_formatted,
+                    google_percent: data.platform_breakdown.google_percentage
+                };
+                
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function testAllBrands() {
+            const brands = [
+                { name: 'BMW', industry: 'automotive' },
+                { name: 'Mercedes-Benz', industry: 'automotive' },
+                { name: 'Nike', industry: 'fashion' },
+                { name: 'LVMH', industry: 'fashion' },
+                { name: 'SAP', industry: 'technology' },
+                { name: 'Apple', industry: 'technology' },
+                { name: 'Coca-Cola', industry: 'food' },
+                { name: 'Nestlé', industry: 'food' }
+            ];
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Testing brands...</h2>';
+            
+            let html = '<h2>📊 Platform Split Results</h2>';
+            html += '<table><tr><th>Brand</th><th>Industry</th><th>Total Spend</th><th>Meta</th><th>Google</th><th>Difference?</th></tr>';
+            
+            for (const brand of brands) {
+                const result = await testBrand(brand.name, brand.industry);
+                
+                if (result.success) {
+                    const isDifferent = result.meta_percent !== result.google_percent;
+                    const rowClass = isDifferent ? 'success' : 'error';
+                    
+                    html += `<tr class="${rowClass}">
+                        <td><strong>${result.brand}</strong></td>
+                        <td>${result.industry}</td>
+                        <td>${result.total}</td>
+                        <td>${result.meta_amount} (${result.meta_percent}%)</td>
+                        <td>${result.google_amount} (${result.google_percent}%)</td>
+                        <td>${isDifferent ? '✅ Different' : '❌ Same'}</td>
+                    </tr>`;
+                } else {
+                    html += `<tr class="error">
+                        <td><strong>${brand.name}</strong></td>
+                        <td>${brand.industry}</td>
+                        <td colspan="4">❌ Error: ${result.error}</td>
+                    </tr>`;
+                }
+            }
+            
+            html += '</table>';
+            html += '<h3>Legend:</h3>';
+            html += '<p>✅ <span style="background: #d4edda; padding: 2px 8px;">Different Meta/Google splits (Working correctly)</span></p>';
+            html += '<p>❌ <span style="background: #f8d7da; padding: 2px 8px;">Same Meta/Google splits (Problem)</span></p>';
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // Auto-run test on page load
+        window.onload = testAllBrands;
+    </script>
+</body>
+</html>
