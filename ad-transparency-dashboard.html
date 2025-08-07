@@ -1901,6 +1901,31 @@
             // Load initial data
             fetchAdData();
         });
+         // Fix brand input field visibility
+          function updateBrandFieldVisibility() {
+              const analysisType = document.getElementById('analysis-type').value;
+              const brandGroup = document.getElementById('brand-name-group');
+              const brandInput = document.getElementById('brand-name');
+
+              if (analysisType === 'brand-details') {
+                  brandGroup.style.display = 'block';
+                  brandInput.required = true;
+              } else {
+                  brandGroup.style.display = 'none';
+                  brandInput.required = false;
+              }
+          }
+
+          // Attach event listener to analysis type dropdown
+          document.getElementById('analysis-type').addEventListener('change', updateBrandFieldVisibility);
+
+          // Initialize on page load
+          document.addEventListener('DOMContentLoaded', function() {
+              updateBrandFieldVisibility();
+          });
+
+          // Run immediately
+          setTimeout(updateBrandFieldVisibility, 100);
     </script>
 </body>
 </html>
