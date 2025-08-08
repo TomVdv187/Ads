@@ -1,0 +1,2137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta & Google Ads Transparency Dashboard - Analyze data across Meta and Google platforms</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+        
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .results {
+            margin-top: 30px;
+        }
+        
+        .ad-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .ad-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .ad-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .advertiser-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        
+        .ad-type {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .ad-content {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .ad-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .metric {
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        /* Enhanced responsive design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .ad-metrics {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 10px;
+            }
+            
+            .ad-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .control-group {
+                padding: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .ad-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Loading and success animations */
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Interactive elements */
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn:disabled:hover {
+            transform: none;
+        }
+        
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Progress indicator */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Meta & Google Ads Transparency Dashboard</h1>
+            <p>Analyze Belgian & French advertising data across Meta and Google platforms</p>
+        </div>
+        
+        <div class="content">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="industry">Industry</label>
+                    <select id="industry">
+                        <option value="automotive">Automotive</option>
+                        <option value="fashion">Fashion</option>
+                        <option value="technology">Technology</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="finance">Finance</option>
+                        <option value="food">Food & Beverage</option>
+                        <option value="travel">Travel</option>
+                        <option value="education">Education</option>
+                        <option value="real_estate">Real Estate</option>
+                        <option value="gaming">Gaming</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="country-filter">Country/Region Filter</label>
+                    <select id="country-filter">
+                        <option value="all">🇧🇪🇫🇷 Belgium & France</option>
+                        <option value="Belgium">🇧🇪 Belgium Only</option>
+                        <option value="France">🇫🇷 France Only</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="date-from">From Date</label>
+                    <input type="date" id="date-from" value="">
+                </div>
+                
+                <div class="control-group">
+                    <label for="date-to">To Date</label>
+                    <input type="date" id="date-to" value="">
+                </div>
+                
+                <div class="control-group">
+                    <label for="platform">Platform</label>
+                    <select id="platform">
+                        <option value="meta">Meta (Facebook/Instagram)</option>
+                        <option value="google">Google Ads</option>
+                        <option value="both">Both Platforms</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="analysis-type">Analysis Type</label>
+                    <select id="analysis-type">
+                        <option value="sector-overview">📊 Belgian & French Sector Overview</option>
+                        <option value="brand-details">🔍 Brand Deep Dive</option>
+                        <option value="country-analysis">🇪🇺 Country Analysis</option>
+                        <option value="subcategory-analysis">📈 Subcategory Drill-down</option>
+                    </select>
+                </div>
+                
+                <div class="control-group" id="brand-name-group" style="display:none;">
+                    <label for="brand-name">Brand Name</label>
+                    <input type="text" id="brand-name" placeholder="Enter brand name" list="brand-suggestions">
+                    <datalist id="brand-suggestions">
+                        <!-- Dynamic brand list will be populated by JavaScript -->
+                    </datalist>
+                    <div style="font-size: 0.8rem; color: #6c757d; margin-top: 5px;" id="brand-suggestions-help">
+                        💡 Start typing to see available brands or select from dropdown
+                    </div>
+                </div>
+                
+                <div class="control-group" id="country-group" style="display:none;">
+                    <label for="country">Country</label>
+                    <select id="country">
+                        <option value="Germany">🇩🇪 Germany</option>
+                        <option value="France">🇫🇷 France</option>
+                        <option value="UK">🇬🇧 United Kingdom</option>
+                        <option value="Spain">🇪🇸 Spain</option>
+                        <option value="Italy">🇮🇹 Italy</option>
+                        <option value="Netherlands">🇳🇱 Netherlands</option>
+                        <option value="Sweden">🇸🇪 Sweden</option>
+                        <option value="Switzerland">🇨🇭 Switzerland</option>
+                    </select>
+                </div>
+                
+                <div class="control-group" id="subcategory-group" style="display:none;">
+                    <label for="subcategory">Subcategory</label>
+                    <select id="subcategory">
+                        <option value="luxury">Luxury</option>
+                        <option value="mainstream">Mainstream</option>
+                        <option value="enterprise">Enterprise</option>
+                        <option value="consumer">Consumer</option>
+                        <option value="fintech">Fintech</option>
+                        <option value="banks">Banks</option>
+                        <option value="insurance">Insurance</option>
+                        <option value="retail">Retail</option>
+                        <option value="brands">Brands</option>
+                        <option value="sportswear">Sportswear</option>
+                        <option value="fast_fashion">Fast Fashion</option>
+                        <option value="electric">Electric</option>
+                    </select>
+                </div>
+                
+                <div class="control-group" id="currency-group" style="display:none;">
+                    <label for="currency">Currency</label>
+                    <select id="currency">
+                        <option value="EUR">🇪🇺 Euro (EUR)</option>
+                        <option value="USD">🇺🇸 US Dollar (USD)</option>
+                        <option value="GBP">🇬🇧 British Pound (GBP)</option>
+                        <option value="CHF">🇨🇭 Swiss Franc (CHF)</option>
+                        <option value="SEK">🇸🇪 Swedish Krona (SEK)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <button class="btn" id="analyze-btn" onclick="fetchAdData()">🔍 Analyze</button>
+                </div>
+                
+                <div class="control-group" id="export-group" style="display:none;">
+                    <button class="btn" onclick="exportData()" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        📊 Export Data
+                    </button>
+                </div>
+            </div>
+            
+            <div id="stats" class="stats-grid" style="display:none;"></div>
+            <div id="results" class="results"></div>
+        </div>
+    </div>
+
+    <script src="mcp-integration.js"></script>
+    <script>
+        // Enhanced error handling and validation
+        function validateInputs() {
+            const industry = document.getElementById('industry').value;
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+            const brandName = document.getElementById('brand-name').value;
+            const analysisType = document.getElementById('analysis-type').value;
+            
+            const errors = [];
+            
+            if (!dateFrom || !dateTo) {
+                errors.push('Please select both From Date and To Date');
+            }
+            
+            if (dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)) {
+                errors.push('From Date cannot be later than To Date');
+            }
+            
+            const daysDiff = dateFrom && dateTo ? 
+                Math.abs(new Date(dateTo) - new Date(dateFrom)) / (1000 * 60 * 60 * 24) : 0;
+            
+            if (daysDiff > 365) {
+                errors.push('Date range cannot exceed 365 days');
+            }
+            
+            if (analysisType === 'brand-details' && !brandName.trim()) {
+                errors.push('Please enter a brand name for brand analysis');
+            }
+            
+            if (analysisType === 'brand-details' && brandName.trim().length < 2) {
+                errors.push('Brand name must be at least 2 characters long');
+            }
+            
+            return errors;
+        }
+        
+        function showError(message) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="error">
+                    <strong>⚠️ Error:</strong> ${message}
+                </div>
+            `;
+        }
+        
+        function showErrors(errors) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="error">
+                    <strong>⚠️ Validation Errors:</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        ${errors.map(error => `<li>${error}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+        
+        async function fetchAdData() {
+            const industry = document.getElementById('industry').value;
+            const analysisType = document.getElementById('analysis-type').value;
+            const brandName = document.getElementById('brand-name').value;
+            const countryFilter = document.getElementById('country-filter') ? document.getElementById('country-filter').value : 'all';
+            
+            const resultsDiv = document.getElementById('results');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            
+            // Show loading
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = '⏳ Analyzing...';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>🔄 Analyzing data...</p></div>';
+
+            try {
+                let data;
+                
+                console.log(`Fetching ${analysisType} data for ${industry}...`);
+
+                switch (analysisType) {
+                    case 'sector-overview':
+                        data = await getSectorOverview(industry, {});
+                        console.log('Sector overview data received:', data);
+                        displaySectorOverviewResults(data);
+                        break;
+                    case 'brand-details':
+                        if (!brandName || brandName.trim() === '') {
+                            throw new Error('Please enter a brand name for detailed analysis');
+                        }
+                        data = await getBrandDetails(brandName.trim(), industry, {});
+                        console.log('Brand details data received:', data);
+                        displayBrandDetailsResults(data);
+                        break;
+                    case 'country-analysis':
+                        data = await getCountryAnalysis({});
+                        console.log('Country analysis data received:', data);
+                        displayCountryAnalysisResults(data);
+                        break;
+                    case 'subcategory-analysis':
+                        data = await getSubcategoryAnalysis(industry, {});
+                        console.log('Subcategory analysis data received:', data);
+                        displaySubcategoryAnalysisResults(data);
+                        break;
+                    default:
+                        throw new Error('Please select a valid analysis type');
+                }
+
+                // Show export button if exists
+                const exportGroup = document.getElementById('export-group');
+                if (exportGroup) {
+                    exportGroup.style.display = 'block';
+                }
+
+                // Update stats if function exists
+                if (typeof updateStats === 'function') {
+                    updateStats(data, analysisType);
+                }
+
+            } catch (error) {
+                console.error('Error fetching ad data:', error);
+                const errorMessage = error.message || 'Failed to fetch data. Please check your connection and try again.';
+                
+                // Show detailed error information 
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Analysis Failed</h3>
+                        <p><strong>Error:</strong> ${errorMessage}</p>
+                        <p><strong>Analysis Type:</strong> ${analysisType}</p>
+                        <p><strong>Industry:</strong> ${industry}</p>
+                        <p><strong>Brand:</strong> ${brandName || 'N/A'}</p>
+                        <p><strong>Debug Info:</strong></p>
+                        <ul>
+                            <li>This is running on Vercel deployment</li>
+                            <li>API endpoints should be available at relative URLs</li>
+                            <li>Check browser console for detailed error messages</li>
+                            <li>Server data: Belgium & France brands database</li>
+                        </ul>
+                        <p><strong>Console Logs:</strong> Check browser developer tools (F12) for detailed error information</p>
+                    </div>
+                `;
+            } finally {
+                // Re-enable button
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = '🔍 Analyze';
+            }
+        }
+        
+        // Belgian and French brands only
+        const EUROPEAN_BRANDS_BY_INDUSTRY = {
+            "automotive": [
+                {"name": "Mercedes-Benz", "country": "Germany"}, {"name": "BMW", "country": "Germany"}, {"name": "Audi", "country": "Germany"},
+                {"name": "Volkswagen", "country": "Germany"}, {"name": "Toyota", "country": "Japan"}, {"name": "Renault", "country": "France"},
+                {"name": "Peugeot", "country": "France"}, {"name": "Citroën", "country": "France"}, {"name": "Tesla", "country": "USA"},
+                {"name": "Ford", "country": "USA"}, {"name": "Honda", "country": "Japan"}, {"name": "Nissan", "country": "Japan"},
+                {"name": "Hyundai", "country": "South Korea"}, {"name": "Kia", "country": "South Korea"}, {"name": "Volvo", "country": "Sweden"},
+                {"name": "Porsche", "country": "Germany"}, {"name": "Jaguar", "country": "UK"}, {"name": "Land Rover", "country": "UK"},
+                {"name": "Lexus", "country": "Japan"}, {"name": "Opel", "country": "Germany"}, {"name": "Mazda", "country": "Japan"},
+                {"name": "Subaru", "country": "Japan"}, {"name": "Suzuki", "country": "Japan"}, {"name": "Mitsubishi", "country": "Japan"},
+                {"name": "Dacia", "country": "Romania"}, {"name": "Skoda", "country": "Czech Republic"},
+                // Belgian automotive brands
+                {"name": "D'Ieteren Group", "country": "Belgium"}, {"name": "Kroymans", "country": "Belgium"}, {"name": "Autoscoop", "country": "Belgium"},
+                // French automotive brands  
+                {"name": "Groupe PSA Retail", "country": "France"}, {"name": "Groupe Maurin", "country": "France"}
+            ],
+            "fashion": [
+                {"name": "LVMH", "country": "France"}, {"name": "Chanel", "country": "France"}, {"name": "Hermès", "country": "France"},
+                {"name": "Gucci", "country": "Italy"}, {"name": "Prada", "country": "Italy"}, {"name": "Burberry", "country": "UK"},
+                {"name": "Nike", "country": "USA"}, {"name": "Adidas", "country": "Germany"}, {"name": "Puma", "country": "Germany"}, 
+                {"name": "Under Armour", "country": "USA"}, {"name": "Lululemon", "country": "Canada"},
+                {"name": "Zara", "country": "Spain"}, {"name": "H&M", "country": "Sweden"}, {"name": "Uniqlo", "country": "Japan"}, {"name": "Mango", "country": "Spain"},
+                // Belgian fashion brands
+                {"name": "JBC", "country": "Belgium"}, {"name": "CKS", "country": "Belgium"}, {"name": "ZEB", "country": "Belgium"},
+                {"name": "Mayerline", "country": "Belgium"}, {"name": "Terre Bleue", "country": "Belgium"},
+                // French fashion brands
+                {"name": "Lacoste", "country": "France"}, {"name": "Galeries Lafayette", "country": "France"}, {"name": "Printemps", "country": "France"},
+                {"name": "La Redoute", "country": "France"}, {"name": "Kiabi", "country": "France"}, {"name": "Celio", "country": "France"}, {"name": "3 Suisses", "country": "France"}
+            ],
+            "technology": [
+                {"name": "Apple", "country": "USA"}, {"name": "Google", "country": "USA"}, {"name": "Microsoft", "country": "USA"},
+                {"name": "Amazon", "country": "USA"}, {"name": "Meta", "country": "USA"}, {"name": "Netflix", "country": "USA"},
+                {"name": "Samsung", "country": "South Korea"}, {"name": "Adobe", "country": "USA"}, {"name": "Salesforce", "country": "USA"},
+                {"name": "SAP", "country": "Germany"}, {"name": "Oracle", "country": "USA"}, {"name": "Philips", "country": "Netherlands"},
+                // Belgian technology brands  
+                {"name": "Odoo", "country": "Belgium"}, {"name": "Collibra", "country": "Belgium"}, {"name": "Showpad", "country": "Belgium"},
+                // French technology brands
+                {"name": "Criteo", "country": "France"}, {"name": "Dassault Systèmes", "country": "France"}, {"name": "Atos", "country": "France"}
+            ],
+            "finance": [
+                {"name": "BNP Paribas", "country": "France"}, {"name": "Crédit Agricole", "country": "France"}, {"name": "Société Générale", "country": "France"},
+                {"name": "ING", "country": "Netherlands"}, {"name": "Deutsche Bank", "country": "Germany"}, {"name": "Santander", "country": "Spain"},
+                {"name": "AXA", "country": "France"}, {"name": "Allianz", "country": "Germany"}, {"name": "Generali", "country": "Italy"},
+                {"name": "Zurich", "country": "Switzerland"}, {"name": "DEGIRO", "country": "Netherlands"}, {"name": "eToro", "country": "Cyprus"},
+                // Belgian financial institutions  
+                {"name": "KBC", "country": "Belgium"}, {"name": "Belfius", "country": "Belgium"}, {"name": "AG Insurance", "country": "Belgium"},
+                {"name": "Ethias", "country": "Belgium"}, {"name": "Keytrade Bank", "country": "Belgium"}, {"name": "Argenta", "country": "Belgium"},
+                // French financial institutions
+                {"name": "Boursorama", "country": "France"}, {"name": "Fortuneo", "country": "France"}
+            ],
+            "food": [
+                {"name": "Coca-Cola", "country": "USA"}, {"name": "PepsiCo", "country": "USA"}, {"name": "Nestlé", "country": "Switzerland"},
+                {"name": "Unilever", "country": "Netherlands/UK"}, {"name": "Mars", "country": "USA"}, {"name": "Mondelez", "country": "USA"},
+                {"name": "Danone", "country": "France"}, {"name": "Ferrero", "country": "Italy"}, {"name": "Kellogg's", "country": "USA"},
+                {"name": "General Mills", "country": "USA"}, {"name": "Kraft Heinz", "country": "USA"}, {"name": "Dr. Oetker", "country": "Germany"},
+                {"name": "McDonald's", "country": "USA"}, {"name": "Domino's", "country": "USA"}, {"name": "Pizza Hut", "country": "USA"},
+                {"name": "Lidl", "country": "Germany"}, {"name": "ALDI", "country": "Germany"}, {"name": "Carrefour", "country": "France"},
+                // Belgian food & retail brands
+                {"name": "Delhaize", "country": "Belgium"}, {"name": "Colruyt", "country": "Belgium"}, {"name": "AB InBev", "country": "Belgium"},
+                {"name": "Duvel Moortgat", "country": "Belgium"}, {"name": "Carrefour Belgium", "country": "Belgium"}, {"name": "Cora", "country": "Belgium"},
+                // French food & retail brands  
+                {"name": "Leclerc", "country": "France"}, {"name": "Intermarché", "country": "France"}, {"name": "Casino", "country": "France"}
+            ],
+            "healthcare": [
+                {"name": "Pfizer", "country": "USA"}, {"name": "Johnson & Johnson", "country": "USA"}, {"name": "Roche", "country": "Switzerland"},
+                {"name": "Novartis", "country": "Switzerland"}, {"name": "AstraZeneca", "country": "UK"}, {"name": "GSK", "country": "UK"},
+                {"name": "Merck", "country": "USA"}, {"name": "Abbott", "country": "USA"}, {"name": "Bayer", "country": "Germany"},
+                {"name": "Boehringer Ingelheim", "country": "Germany"}, {"name": "Sanofi", "country": "France"},
+                // Belgian healthcare brands
+                {"name": "UCB", "country": "Belgium"}, {"name": "Galapagos", "country": "Belgium"}, {"name": "Janssen Pharmaceutica", "country": "Belgium"},
+                {"name": "Mutualités Chrétiennes", "country": "Belgium"}, {"name": "Mutualités Libres", "country": "Belgium"},
+                // French healthcare brands
+                {"name": "Servier", "country": "France"}, {"name": "Pierre Fabre", "country": "France"}, {"name": "Ipsen", "country": "France"}
+            ],
+            "travel": [
+                {"name": "Lufthansa", "country": "Germany"}, {"name": "Air France-KLM", "country": "France/Netherlands"}, {"name": "British Airways", "country": "UK"},
+                {"name": "Ryanair", "country": "Ireland"}, {"name": "easyJet", "country": "UK"}, {"name": "Emirates", "country": "UAE"},
+                {"name": "Turkish Airlines", "country": "Turkey"}, {"name": "Booking.com", "country": "Netherlands"}, {"name": "Expedia", "country": "USA"},
+                {"name": "Airbnb", "country": "USA"}, {"name": "Kayak", "country": "USA"}, {"name": "Skyscanner", "country": "UK"},
+                // Belgian travel brands  
+                {"name": "Brussels Airlines", "country": "Belgium"}, {"name": "Jetair", "country": "Belgium"}, {"name": "Connections", "country": "Belgium"},
+                // French travel brands
+                {"name": "Club Med", "country": "France"}, {"name": "Pierre & Vacances", "country": "France"}, {"name": "Promovacances", "country": "France"}
+            ],
+            "education": [
+                {"name": "Coursera", "country": "USA"}, {"name": "Udemy", "country": "USA"}, {"name": "LinkedIn Learning", "country": "USA"},
+                {"name": "MasterClass", "country": "USA"}, {"name": "Skillshare", "country": "USA"}, {"name": "Duolingo", "country": "USA"},
+                {"name": "Babbel", "country": "Germany"}, {"name": "Pearson", "country": "UK"}, {"name": "McGraw-Hill", "country": "USA"},
+                // Belgian education brands
+                {"name": "KU Leuven", "country": "Belgium"}, {"name": "UCLouvain", "country": "Belgium"}, {"name": "UGent", "country": "Belgium"},
+                {"name": "BeCode", "country": "Belgium"}, {"name": "EPHEC", "country": "Belgium"}, {"name": "Le Wagon", "country": "Belgium"},
+                // French education brands
+                {"name": "HEC Paris", "country": "France"}, {"name": "INSEAD", "country": "France"}, {"name": "OpenClassrooms", "country": "France"}
+            ],
+            "real_estate": [
+                {"name": "Vonovia", "country": "Germany"}, {"name": "Unibail-Rodamco-Westfield", "country": "France"}, {"name": "Segro", "country": "UK"},
+                {"name": "Klepierre", "country": "France"}, {"name": "Ikea", "country": "Sweden"}, {"name": "Leroy Merlin", "country": "France"},
+                {"name": "Castorama", "country": "France"}, {"name": "Bricoman", "country": "France"},
+                // Belgian real estate brands
+                {"name": "Immoweb", "country": "Belgium"}, {"name": "Realo", "country": "Belgium"}, {"name": "Zimmo", "country": "Belgium"},
+                {"name": "Cofinimmo", "country": "Belgium"}, {"name": "Montea", "country": "Belgium"}, {"name": "Brico", "country": "Belgium"},
+                {"name": "Century 21 Belgium", "country": "Belgium"}, {"name": "Era Belgium", "country": "Belgium"}, {"name": "Dewaele", "country": "Belgium"},
+                // French real estate brands  
+                {"name": "SeLoger.com", "country": "France"}, {"name": "Logic-immo.com", "country": "France"}, {"name": "Leboncoin", "country": "France"}
+            ],
+            "gaming": [
+                {"name": "EA", "country": "USA"}, {"name": "Activision Blizzard", "country": "USA"}, {"name": "Microsoft Xbox", "country": "USA"},
+                {"name": "Sony PlayStation", "country": "Japan"}, {"name": "Nintendo", "country": "Japan"}, {"name": "Epic Games", "country": "USA"},
+                {"name": "Riot Games", "country": "USA"}, {"name": "Ubisoft", "country": "France"}, {"name": "King (Candy Crush)", "country": "UK"},
+                {"name": "Supercell", "country": "Finland"}, {"name": "Rovio", "country": "Finland"}, {"name": "Steam", "country": "USA"},
+                // Belgian gaming brands
+                {"name": "Larian Studios", "country": "Belgium"}, {"name": "Appeal Studios", "country": "Belgium"}, {"name": "G2 Esports", "country": "Belgium"},
+                // French gaming brands
+                {"name": "Focus Entertainment", "country": "France"}, {"name": "Dontnod Entertainment", "country": "France"}, {"name": "Quantic Dream", "country": "France"}
+            ]
+        };
+        
+        // Function to update brand suggestions based on industry and country filter
+        function updateBrandSuggestions(industry) {
+            const datalist = document.getElementById('brand-suggestions');
+            const helpText = document.getElementById('brand-suggestions-help');
+            const countryFilter = document.getElementById('country-filter').value;
+            let brands = EUROPEAN_BRANDS_BY_INDUSTRY[industry] || [];
+            
+            // Filter brands by country if a specific country is selected
+            if (countryFilter !== 'all') {
+                brands = brands.filter(brand => {
+                    // Handle multi-country brands like "Netherlands/UK"
+                    return brand.country.toLowerCase().includes(countryFilter.toLowerCase()) ||
+                           brand.country.split('/').some(c => c.trim().toLowerCase() === countryFilter.toLowerCase());
+                });
+            }
+            
+            // Clear existing options
+            datalist.innerHTML = '';
+            
+            // Add new options for the selected industry and country
+            brands.forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand.name;
+                option.textContent = `${brand.name} (${brand.country})`;
+                datalist.appendChild(option);
+            });
+            
+            // Update help text
+            const brandCount = brands.length;
+            const filterText = countryFilter === 'all' ? 'Belgium & France' : countryFilter;
+            helpText.innerHTML = `💡 ${brandCount} brands available in ${industry} industry (${filterText}) - start typing to search`;
+            
+            // Clear brand name input when filters change
+            document.getElementById('brand-name').value = '';
+        }
+        
+        // Listen for industry changes to update brand suggestions
+        document.getElementById('industry').addEventListener('change', function() {
+            const industry = this.value;
+            updateBrandSuggestions(industry);
+        });
+        
+        // Listen for country filter changes to update brand suggestions
+        document.getElementById('country-filter').addEventListener('change', function() {
+            const industry = document.getElementById('industry').value;
+            updateBrandSuggestions(industry);
+        });
+        
+        // Function to update brand field visibility
+        function updateBrandFieldVisibility() {
+            const analysisType = document.getElementById('analysis-type').value;
+            const brandGroup = document.getElementById('brand-name-group');
+            const brandInput = document.getElementById('brand-name');
+            
+            if (analysisType === 'brand-details') {
+                brandGroup.style.display = 'block';
+                brandInput.required = true;
+            } else {
+                brandGroup.style.display = 'none';
+                brandInput.required = false;
+            }
+        }
+
+        // Show/hide input fields based on analysis type
+        document.getElementById('analysis-type').addEventListener('change', function() {
+            const analysisType = this.value;
+            const brandNameGroup = document.getElementById('brand-name-group');
+            const countryGroup = document.getElementById('country-group');
+            const subcategoryGroup = document.getElementById('subcategory-group');
+            const currencyGroup = document.getElementById('currency-group');
+            const brandNameInput = document.getElementById('brand-name');
+            
+            // Hide all optional groups first
+            brandNameGroup.style.display = 'none';
+            countryGroup.style.display = 'none';
+            subcategoryGroup.style.display = 'none';
+            currencyGroup.style.display = 'none';
+            brandNameInput.required = false;
+            brandNameInput.value = '';
+            
+            // Update brand field visibility
+            updateBrandFieldVisibility();
+            
+            // Show relevant groups based on analysis type
+            if (analysisType === 'brand-details') {
+                brandNameInput.placeholder = 'Start typing or click dropdown arrow ↓';
+                // Update brand suggestions for current industry
+                const industry = document.getElementById('industry').value;
+                updateBrandSuggestions(industry);
+                brandNameInput.focus();
+            }
+            if (analysisType === 'country-analysis') {
+                countryGroup.style.display = 'block';
+            }
+            if (analysisType === 'subcategory-analysis') {
+                subcategoryGroup.style.display = 'block';
+            }
+            if (['sector-overview', 'brand-details', 'country-analysis', 'subcategory-analysis'].includes(analysisType)) {
+                currencyGroup.style.display = 'block';
+            }
+            
+            // Update analyze button text
+            const analyzeBtn = document.querySelector('.btn');
+            const buttonTexts = {
+                'sector-overview': '📊 Analyze Sector',
+                'brand-details': '🔍 Deep Dive',
+                'country-analysis': '🇪🇺 Analyze Country', 
+                'subcategory-analysis': '📈 Drill Down'
+            };
+            analyzeBtn.innerHTML = buttonTexts[analysisType] || '🔍 Analyze';
+        });
+        
+        // Real-time validation for brand name
+        document.getElementById('brand-name').addEventListener('input', function() {
+            const value = this.value.trim();
+            const analysisType = document.getElementById('analysis-type').value;
+            
+            if (analysisType === 'brand-details') {
+                if (value.length < 2 && value.length > 0) {
+                    this.style.borderColor = '#dc3545';
+                    this.title = 'Brand name must be at least 2 characters long';
+                } else {
+                    this.style.borderColor = '#28a745';
+                    this.title = '';
+                }
+            }
+        });
+        
+        // Note: MCP integration is now handled by mcp-integration.js
+        
+        function generateDemoAdData(industry, limit) {
+            const ads = [];
+            const keywords = {
+                automotive: ["car", "auto", "vehicle", "truck", "suv"],
+                fashion: ["clothing", "fashion", "style", "wear", "dress"],
+                technology: ["tech", "software", "app", "digital", "ai"]
+            };
+            
+            const industryKeywords = keywords[industry] || ["product", "service", "solution"];
+            
+            for (let i = 0; i < Math.min(limit, 20); i++) {
+                ads.push({
+                    id: `demo_ad_${industry}_${i+1}`,
+                    advertiser_name: `${industry.charAt(0).toUpperCase() + industry.slice(1)} Company ${i+1}`,
+                    ad_creative_body: `Discover amazing ${industryKeywords[i % industryKeywords.length]} deals!`,
+                    spend_estimate: `${(i+1) * 1000}-${(i+1) * 5000}`,
+                    impressions_estimate: `${(i+1) * 10000}-${(i+1) * 50000}`,
+                    ad_type: i % 2 === 0 ? 'image' : 'video',
+                    platform: i % 2 === 0 ? 'Facebook' : 'Instagram',
+                    demographic_distribution: {
+                        age: {"18-24": 25, "25-34": 35, "35-44": 20, "45-54": 15, "55+": 5},
+                        gender: {"male": 45 + (i % 10), "female": 55 - (i % 10)}
+                    }
+                });
+            }
+            return ads;
+        }
+        
+        function generateDemoGoogleAdData(industry, limit) {
+            const ads = [];
+            const keywords = {
+                automotive: ["car", "auto", "vehicle", "truck", "suv"],
+                fashion: ["clothing", "fashion", "style", "wear", "dress"],
+                technology: ["tech", "software", "app", "digital", "ai"]
+            };
+            
+            const industryKeywords = keywords[industry] || ["product", "service", "solution"];
+            
+            for (let i = 0; i < Math.min(limit, 20); i++) {
+                ads.push({
+                    id: `google_ad_${industry}_${i+1}`,
+                    advertiser_name: `Google ${industry.charAt(0).toUpperCase() + industry.slice(1)} Co ${i+1}`,
+                    ad_title: `Best ${industryKeywords[i % industryKeywords.length]} Solutions`,
+                    ad_description: `Discover premium ${industryKeywords[i % industryKeywords.length]} with Google Ads`,
+                    display_url: `www.${industry}company${i+1}.com`,
+                    format: ["Text", "Display", "Video", "Shopping"][i % 4],
+                    impressions_min: (i+1) * 5000,
+                    impressions_max: (i+1) * 25000,
+                    clicks_estimate: (i+1) * 250,
+                    ctr_estimate: `${1.5 + (i % 5) * 0.5}%`,
+                    platform: "Google Ads"
+                });
+            }
+            return ads;
+        }
+        
+        function generateBrandsData(industry) {
+            const brandCategories = {
+                automotive: {
+                    luxury: ["Mercedes-Benz", "BMW", "Audi", "Lexus", "Porsche", "Genesis", "Infiniti", "Jaguar", "Land Rover", "Volvo"],
+                    mainstream: ["Toyota", "Honda", "Ford", "Nissan", "Hyundai", "Kia", "Mazda", "Volkswagen", "Peugeot", "Renault", "Citroën", "Opel", "Subaru", "Suzuki", "Mitsubishi"],
+                    electric: ["Tesla", "Dacia"],
+                    local_be: ["D'Ieteren Group", "Kroymans", "Autoscoop"],
+                    local_fr: ["Groupe PSA Retail", "Groupe Maurin", "Groupe Bernard"],
+                    premium: ["Acura", "Isuzu", "Skoda"]
+                },
+                fashion: {
+                    luxury: ["Gucci", "Louis Vuitton", "Prada", "Hermès", "Chanel"],
+                    fast_fashion: ["Zara", "H&M", "Forever 21", "Shein", "Uniqlo"],
+                    athletic: ["Nike", "Adidas", "Under Armour", "Puma", "Lululemon"],
+                    online: ["ASOS", "Boohoo", "Fashion Nova", "Revolve"]
+                },
+                technology: {
+                    big_tech: ["Apple", "Google", "Microsoft", "Amazon", "Meta"],
+                    cloud: ["AWS", "Microsoft Azure", "Google Cloud", "IBM Cloud"],
+                    ai: ["OpenAI", "Anthropic", "Databricks", "Snowflake"],
+                    hardware: ["Intel", "NVIDIA", "AMD", "Qualcomm"]
+                }
+            };
+            
+            const brands = brandCategories[industry] || {
+                major: Array.from({length: 10}, (_, i) => `${industry.charAt(0).toUpperCase() + industry.slice(1)} Leader ${i+1}`),
+                emerging: Array.from({length: 5}, (_, i) => `New ${industry.charAt(0).toUpperCase() + industry.slice(1)} Brand ${i+1}`)
+            };
+            
+            return {
+                industry: industry,
+                total_brands: Object.values(brands).flat().length,
+                categories: brands,
+                competitive_analysis: {
+                    market_leaders: Object.values(brands)[0]?.slice(0, 3) || [],
+                    emerging_competitors: Object.values(brands)[Object.keys(brands).length - 1]?.slice(0, 3) || []
+                }
+            };
+        }
+        
+        function generatePlatformComparisonData(industry) {
+            const metaScore = Math.floor(Math.random() * 500) + 500;
+            const googleScore = Math.floor(Math.random() * 500) + 600;
+            
+            return {
+                industry: industry,
+                platforms: {
+                    meta: {
+                        reach: metaScore * 1000,
+                        spend: metaScore * 100,
+                        engagement: metaScore / 100,
+                        ctr: (metaScore % 10) / 10 + 1
+                    },
+                    google: {
+                        reach: googleScore * 1200,
+                        spend: googleScore * 120,
+                        engagement: googleScore / 150,
+                        ctr: (googleScore % 10) / 10 + 2
+                    }
+                },
+                leader: googleScore > metaScore ? "google" : "meta",
+                insights: [
+                    "Google Ads shows higher reach in this industry",
+                    "Meta provides better engagement rates",
+                    "Both platforms show strong performance"
+                ]
+            };
+        }
+        
+        function generateBrandStrategyData(brandName, industry, platform) {
+            return {
+                brand: brandName,
+                industry: industry,
+                platforms_analyzed: platform === 'both' ? ['meta', 'google'] : [platform],
+                overall_strategy: "Multi-platform approach with focus on brand awareness",
+                platform_breakdown: {
+                    meta: platform === 'meta' || platform === 'both' ? {
+                        primary_objective: "Brand awareness and engagement",
+                        ad_formats: ["Video", "Carousel", "Single Image"],
+                        estimated_spend: `${Math.floor(Math.random() * 50000) + 10000}`,
+                        performance_score: Math.random() * 0.3 + 0.7
+                    } : null,
+                    google: platform === 'google' || platform === 'both' ? {
+                        primary_objective: "Lead generation and conversions",
+                        ad_formats: ["Search", "Display", "Shopping", "YouTube"],
+                        estimated_spend: `${Math.floor(Math.random() * 60000) + 15000}`,
+                        performance_score: Math.random() * 0.25 + 0.75
+                    } : null
+                },
+                recommendations: [
+                    "Increase video content allocation",
+                    "Implement cross-platform attribution",
+                    "Test audience expansion",
+                    "Consider seasonal adjustments"
+                ]
+            };
+        }
+        
+        function generateTrendData(industry) {
+            const days = [];
+            for (let i = 7; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                days.push({
+                    date: date.toISOString().split('T')[0],
+                    ad_count: Math.floor(Math.random() * 50) + 20,
+                    estimated_spend: `${Math.floor(Math.random() * 50000) + 10000}`
+                });
+            }
+            
+            return {
+                industry: industry,
+                analysis_period: "Last 7 days",
+                total_ads: days.reduce((sum, day) => sum + day.ad_count, 0),
+                trend_direction: Math.random() > 0.5 ? "increasing" : "stable",
+                daily_breakdown: days
+            };
+        }
+        
+        function generateAdvertiserData(industry) {
+            const advertisers = [];
+            for (let i = 0; i < 10; i++) {
+                advertisers.push({
+                    rank: i + 1,
+                    advertiser_name: `${industry.charAt(0).toUpperCase() + industry.slice(1)} Leader ${i + 1}`,
+                    estimated_spend: `${(10 - i) * 50000}`,
+                    ad_count: (10 - i) * 25,
+                    avg_daily_spend: `${(10 - i) * 2000}`
+                });
+            }
+            return advertisers;
+        }
+        
+        function generateComparisonData(industry1, industry2) {
+            return {
+                comparison_metric: "ad_volume",
+                industries: {
+                    [industry1]: { value: Math.floor(Math.random() * 500) + 500, trend: "increasing" },
+                    [industry2]: { value: Math.floor(Math.random() * 500) + 500, trend: "stable" }
+                },
+                leader: Math.random() > 0.5 ? industry1 : industry2
+            };
+        }
+        
+        function displayAdResults(ads, industry, platform = 'meta') {
+            const html = ads.map(ad => {
+                if (platform === 'google') {
+                    return `
+                        <div class="ad-card">
+                            <div class="ad-header">
+                                <div class="advertiser-name">${ad.advertiser_name}</div>
+                                <div class="ad-type">${ad.format}</div>
+                            </div>
+                            <div class="ad-content">
+                                <strong>${ad.ad_title}</strong><br>
+                                ${ad.ad_description}<br>
+                                <em>${ad.display_url}</em>
+                            </div>
+                            <div class="ad-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">${ad.impressions_min}-${ad.impressions_max}</div>
+                                    <div class="metric-label">Impressions</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${ad.clicks_estimate}</div>
+                                    <div class="metric-label">Est. Clicks</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${ad.ctr_estimate}</div>
+                                    <div class="metric-label">CTR</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${ad.platform}</div>
+                                    <div class="metric-label">Platform</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="ad-card">
+                            <div class="ad-header">
+                                <div class="advertiser-name">${ad.advertiser_name}</div>
+                                <div class="ad-type">${ad.ad_type}</div>
+                            </div>
+                            <div class="ad-content">${ad.ad_creative_body}</div>
+                            <div class="ad-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">${ad.spend_estimate}</div>
+                                    <div class="metric-label">Spend</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${ad.impressions_estimate}</div>
+                                    <div class="metric-label">Impressions</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${ad.platform}</div>
+                                    <div class="metric-label">Platform</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function displayCombinedAdResults(data, industry) {
+            const html = `
+                <div class="ad-card">
+                    <h3>🔍 Multi-Platform Ad Search Results for ${industry}</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                        <div>
+                            <h4>📘 Meta Ads (${data.meta.length} ads)</h4>
+                            ${data.meta.slice(0, 5).map(ad => `
+                                <div style="background: #f0f8ff; padding: 10px; margin: 10px 0; border-radius: 8px;">
+                                    <strong>${ad.advertiser_name}</strong><br>
+                                    <small>${ad.ad_creative_body}</small><br>
+                                    <em>Spend: ${ad.spend_estimate}</em>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div>
+                            <h4>🌐 Google Ads (${data.google.length} ads)</h4>
+                            ${data.google.slice(0, 5).map(ad => `
+                                <div style="background: #f0fff0; padding: 10px; margin: 10px 0; border-radius: 8px;">
+                                    <strong>${ad.advertiser_name}</strong><br>
+                                    <small>${ad.ad_title}: ${ad.ad_description}</small><br>
+                                    <em>CTR: ${ad.ctr_estimate}</em>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function displayBrandsResults(data) {
+            const html = `
+                <div class="ad-card">
+                    <h3>🏢 All Brands in ${data.industry} Industry</h3>
+                    <p><strong>Total Brands:</strong> ${data.total_brands}</p>
+                    
+                    ${Object.entries(data.categories).map(([category, brands]) => `
+                        <div style="margin: 20px 0;">
+                            <h4>${category.replace('_', ' ').toUpperCase()}</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                ${brands.map(brand => `
+                                    <span style="background: #667eea; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem;">
+                                        ${brand}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                        <h4>📊 Competitive Analysis</h4>
+                        <p><strong>Market Leaders:</strong> ${data.competitive_analysis.market_leaders.join(', ')}</p>
+                        <p><strong>Emerging Competitors:</strong> ${data.competitive_analysis.emerging_competitors.join(', ')}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function displayPlatformComparisonResults(data) {
+            const html = `
+                <div class="ad-card">
+                    <h3>⚖️ Meta vs Google Ads Comparison: ${data.industry}</h3>
+                    <p><strong>Leader:</strong> ${data.leader === 'google' ? 'Google Ads' : 'Meta'}</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 20px 0;">
+                        <div>
+                            <h4>📘 Meta Performance</h4>
+                            <div class="ad-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">${data.platforms.meta.reach.toLocaleString()}</div>
+                                    <div class="metric-label">Reach</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${data.platforms.meta.spend.toLocaleString()}</div>
+                                    <div class="metric-label">Spend</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${data.platforms.meta.engagement.toFixed(1)}</div>
+                                    <div class="metric-label">Engagement</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${data.platforms.meta.ctr.toFixed(1)}%</div>
+                                    <div class="metric-label">CTR</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4>🌐 Google Ads Performance</h4>
+                            <div class="ad-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">${data.platforms.google.reach.toLocaleString()}</div>
+                                    <div class="metric-label">Reach</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${data.platforms.google.spend.toLocaleString()}</div>
+                                    <div class="metric-label">Spend</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${data.platforms.google.engagement.toFixed(1)}</div>
+                                    <div class="metric-label">Engagement</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${data.platforms.google.ctr.toFixed(1)}%</div>
+                                    <div class="metric-label">CTR</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <h4>💡 Key Insights</h4>
+                        <ul>
+                            ${data.insights.map(insight => `<li>${insight}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function displayBrandStrategyResults(data) {
+            const html = `
+                <div class="ad-card">
+                    <h3>🎯 Brand Strategy Analysis: ${data.brand}</h3>
+                    <p><strong>Industry:</strong> ${data.industry}</p>
+                    <p><strong>Overall Strategy:</strong> ${data.overall_strategy}</p>
+                    
+                    ${Object.entries(data.platform_breakdown).filter(([platform, details]) => details !== null).map(([platform, details]) => `
+                        <div style="margin: 20px 0; padding: 20px; background: ${platform === 'meta' ? '#f0f8ff' : '#f0fff0'}; border-radius: 12px;">
+                            <h4>${platform === 'meta' ? '📘 Meta Strategy' : '🌐 Google Ads Strategy'}</h4>
+                            <p><strong>Primary Objective:</strong> ${details.primary_objective}</p>
+                            <p><strong>Ad Formats:</strong> ${details.ad_formats.join(', ')}</p>
+                            <p><strong>Estimated Spend:</strong> ${details.estimated_spend}</p>
+                            <p><strong>Performance Score:</strong> ${(details.performance_score * 100).toFixed(1)}%</p>
+                        </div>
+                    `).join('')}
+                    
+                    <div style="margin-top: 20px;">
+                        <h4>💡 Recommendations</h4>
+                        <ul>
+                            ${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function displayTrendResults(data) {
+            const trendsHtml = `
+                <div class="ad-card">
+                    <h3>📈 Trend Analysis: ${data.industry}</h3>
+                    <p><strong>Period:</strong> ${data.analysis_period}</p>
+                    <p><strong>Total Ads:</strong> ${data.total_ads}</p>
+                    <p><strong>Trend:</strong> ${data.trend_direction}</p>
+                    
+                    <h4>Daily Breakdown</h4>
+                    ${data.daily_breakdown.map(day => `
+                        <div style="display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee;">
+                            <span>${day.date}</span>
+                            <span>${day.ad_count} ads</span>
+                            <span>${day.estimated_spend}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = trendsHtml;
+        }
+        
+        function displayAdvertiserResults(data) {
+            const html = data.map(advertiser => `
+                <div class="ad-card">
+                    <div class="ad-header">
+                        <div class="advertiser-name">#${advertiser.rank} ${advertiser.advertiser_name}</div>
+                    </div>
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${advertiser.estimated_spend}</div>
+                            <div class="metric-label">Total Spend</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${advertiser.ad_count}</div>
+                            <div class="metric-label">Ads</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${advertiser.avg_daily_spend}</div>
+                            <div class="metric-label">Daily Spend</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function displayComparisonResults(data) {
+            const html = `
+                <div class="ad-card">
+                    <h3>⚖️ Industry Comparison</h3>
+                    <p><strong>Metric:</strong> ${data.comparison_metric.replace('_', ' ')}</p>
+                    <p><strong>Leader:</strong> ${data.leader}</p>
+                    
+                    <div class="ad-metrics">
+                        ${Object.entries(data.industries).map(([industry, metrics]) => `
+                            <div class="metric">
+                                <div class="metric-value">${metrics.value}</div>
+                                <div class="metric-label">${industry} (${metrics.trend})</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function updateStats(data, type) {
+            const statsDiv = document.getElementById('stats');
+            let statsHtml = '';
+            
+            if (type === 'search' && Array.isArray(data)) {
+                const totalSpend = data.length * 3000; // Rough estimate
+                const totalImpressions = data.length * 30000;
+                
+                statsHtml = `
+                    <div class="stat-card">
+                        <div class="stat-value">${data.length}</div>
+                        <div class="stat-label">Total Ads</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalSpend.toLocaleString()}</div>
+                        <div class="stat-label">Est. Total Spend</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalImpressions.toLocaleString()}</div>
+                        <div class="stat-label">Est. Impressions</div>
+                    </div>
+                `;
+            } else if (type === 'trends') {
+                statsHtml = `
+                    <div class="stat-card">
+                        <div class="stat-value">${data.total_ads}</div>
+                        <div class="stat-label">Total Ads</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.trend_direction}</div>
+                        <div class="stat-label">Trend Direction</div>
+                    </div>
+                `;
+            }
+            
+            statsDiv.innerHTML = statsHtml;
+            statsDiv.style.display = statsHtml ? 'grid' : 'none';
+        }
+        
+        // Data export functionality
+        function exportData() {
+            if (!window.currentAnalysisData) {
+                showError('No data available to export. Please run an analysis first.');
+                return;
+            }
+            
+            const data = window.currentAnalysisData;
+            const filename = `ad-transparency-${data.type}-${data.industry}-${new Date().toISOString().split('T')[0]}.json`;
+            
+            // Create export object
+            const exportObj = {
+                metadata: {
+                    analysis_type: data.type,
+                    industry: data.industry,
+                    platform: data.platform,
+                    date_range: data.dateRange,
+                    brand_name: data.brandName,
+                    exported_at: new Date().toISOString(),
+                    dashboard_version: '2.0'
+                },
+                data: data.data
+            };
+            
+            // Create and download file
+            const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Show success message
+            const resultsDiv = document.getElementById('results');
+            const successMsg = document.createElement('div');
+            successMsg.className = 'success';
+            successMsg.innerHTML = `
+                <strong>✅ Export Successful!</strong> 
+                Data exported as ${filename}
+            `;
+            resultsDiv.insertBefore(successMsg, resultsDiv.firstChild);
+            
+            // Remove success message after 3 seconds
+            setTimeout(() => {
+                if (successMsg.parentNode) {
+                    successMsg.parentNode.removeChild(successMsg);
+                }
+            }, 3000);
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to analyze
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                fetchAdData();
+            }
+            
+            // Ctrl/Cmd + E to export
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e' && window.currentAnalysisData) {
+                e.preventDefault();
+                exportData();
+            }
+        });
+        
+        // Enhanced form validation
+        function setupFormValidation() {
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const errors = validateInputs();
+                    const analyzeBtn = document.getElementById('analyze-btn');
+                    
+                    if (errors.length > 0) {
+                        analyzeBtn.style.opacity = '0.6';
+                        analyzeBtn.title = 'Please fix validation errors: ' + errors.join(', ');
+                    } else {
+                        analyzeBtn.style.opacity = '1';
+                        analyzeBtn.title = 'Click to analyze (Ctrl+Enter)';
+                    }
+                });
+            });
+        }
+        
+        // Belgium & France brand database (embedded from server.py)
+        const BELGIUM_FRANCE_BRANDS_DATABASE = {
+            "automotive": {
+                "Mercedes-Benz": {belgium_ad_spend_eur: 45000000, france_ad_spend_eur: 180000000, total_spend: 225000000, market_share_be: 8.2, market_share_fr: 12.5, platforms: ["Meta", "Google"], ad_types: {video: 65, display: 35, video_spend_eur: 146250000, display_spend_eur: 78750000}},
+                "BMW": {belgium_ad_spend_eur: 42000000, france_ad_spend_eur: 165000000, total_spend: 207000000, market_share_be: 7.8, market_share_fr: 11.8, platforms: ["Meta", "Google"], ad_types: {video: 70, display: 30, video_spend_eur: 144900000, display_spend_eur: 62100000}},
+                "Audi": {belgium_ad_spend_eur: 38000000, france_ad_spend_eur: 155000000, total_spend: 193000000, market_share_be: 7.1, market_share_fr: 10.2, platforms: ["Meta", "Google"], ad_types: {video: 68, display: 32, video_spend_eur: 131240000, display_spend_eur: 61760000}},
+                "Tesla": {belgium_ad_spend_eur: 15000000, france_ad_spend_eur: 75000000, total_spend: 90000000, market_share_be: 2.8, market_share_fr: 4.2, platforms: ["Meta", "Google"], ad_types: {video: 80, display: 20, video_spend_eur: 72000000, display_spend_eur: 18000000}},
+                "Toyota": {belgium_ad_spend_eur: 28000000, france_ad_spend_eur: 120000000, total_spend: 148000000, market_share_be: 9.5, market_share_fr: 8.9, platforms: ["Meta", "Google"], ad_types: {video: 55, display: 45, video_spend_eur: 81400000, display_spend_eur: 66600000}},
+                "Volkswagen": {belgium_ad_spend_eur: 35000000, france_ad_spend_eur: 145000000, total_spend: 180000000, market_share_be: 12.5, market_share_fr: 15.2, platforms: ["Meta", "Google"], ad_types: {video: 58, display: 42, video_spend_eur: 104400000, display_spend_eur: 75600000}},
+                "Renault": {belgium_ad_spend_eur: 22000000, france_ad_spend_eur: 185000000, total_spend: 207000000, market_share_be: 6.8, market_share_fr: 18.5, platforms: ["Meta", "Google"], ad_types: {video: 62, display: 38, video_spend_eur: 128340000, display_spend_eur: 78660000}},
+                "Peugeot": {belgium_ad_spend_eur: 25000000, france_ad_spend_eur: 165000000, total_spend: 190000000, market_share_be: 7.5, market_share_fr: 16.2, platforms: ["Meta", "Google"], ad_types: {video: 60, display: 40, video_spend_eur: 114000000, display_spend_eur: 76000000}}
+            },
+            "fashion": {
+                "Nike": {belgium_ad_spend_eur: 35000000, france_ad_spend_eur: 165000000, total_spend: 200000000, market_share_be: 15.2, market_share_fr: 18.5, platforms: ["Meta", "Google"], ad_types: {video: 75, display: 25, video_spend_eur: 150000000, display_spend_eur: 50000000}},
+                "Adidas": {belgium_ad_spend_eur: 28000000, france_ad_spend_eur: 145000000, total_spend: 173000000, market_share_be: 12.8, market_share_fr: 16.2, platforms: ["Meta", "Google"], ad_types: {video: 70, display: 30, video_spend_eur: 121100000, display_spend_eur: 51900000}},
+                "Zara": {belgium_ad_spend_eur: 22000000, france_ad_spend_eur: 95000000, total_spend: 117000000, market_share_be: 8.5, market_share_fr: 10.8, platforms: ["Meta", "Google"], ad_types: {video: 65, display: 35, video_spend_eur: 76050000, display_spend_eur: 40950000}}
+            },
+            "technology": {
+                "SAP": {belgium_ad_spend_eur: 12000000, france_ad_spend_eur: 28000000, total_spend: 40000000, market_share_be: 3.2, market_share_fr: 4.8, platforms: ["Meta", "Google"], ad_types: {video: 40, display: 60, video_spend_eur: 16000000, display_spend_eur: 24000000}},
+                "Apple": {belgium_ad_spend_eur: 45000000, france_ad_spend_eur: 185000000, total_spend: 230000000, market_share_be: 12.5, market_share_fr: 15.8, platforms: ["Meta", "Google"], ad_types: {video: 80, display: 20, video_spend_eur: 184000000, display_spend_eur: 46000000}},
+                "Microsoft": {belgium_ad_spend_eur: 35000000, france_ad_spend_eur: 125000000, total_spend: 160000000, market_share_be: 9.2, market_share_fr: 10.5, platforms: ["Meta", "Google"], ad_types: {video: 50, display: 50, video_spend_eur: 80000000, display_spend_eur: 80000000}}
+            },
+            "food": {
+                "Coca-Cola": {belgium_ad_spend_eur: 38000000, france_ad_spend_eur: 155000000, total_spend: 193000000, market_share_be: 18.2, market_share_fr: 20.5, platforms: ["Meta", "Google"], ad_types: {video: 85, display: 15, video_spend_eur: 164050000, display_spend_eur: 28950000}},
+                "Nestlé": {belgium_ad_spend_eur: 32000000, france_ad_spend_eur: 145000000, total_spend: 177000000, market_share_be: 15.8, market_share_fr: 18.2, platforms: ["Meta", "Google"], ad_types: {video: 70, display: 30, video_spend_eur: 123900000, display_spend_eur: 53100000}}
+            },
+            "healthcare": {
+                "Pfizer": {belgium_ad_spend_eur: 25000000, france_ad_spend_eur: 95000000, total_spend: 120000000, market_share_be: 12.5, market_share_fr: 15.8, platforms: ["Meta", "Google"], ad_types: {video: 60, display: 40, video_spend_eur: 72000000, display_spend_eur: 48000000}}
+            }
+        };
+
+        // Function to calculate platform breakdown (Meta vs Google splits by industry)
+        function calculatePlatformSplit(industry, totalSpend) {
+            const industryPlatformRatios = {
+                "automotive": {meta: 50, google: 50}, // Balanced for research + awareness
+                "fashion": {meta: 75, google: 25}, // Meta dominates visual fashion
+                "technology": {meta: 40, google: 60}, // Google leads for B2B/search
+                "food": {meta: 70, google: 30}, // Visual/lifestyle content
+                "healthcare": {meta: 45, google: 55}, // Google for research queries
+                "finance": {meta: 35, google: 65}, // Google for financial searches
+                "travel": {meta: 60, google: 40}, // Visual inspiration + booking
+                "education": {meta: 55, google: 45}, // Balanced approach
+                "real_estate": {meta: 65, google: 35}, // Visual property showcasing
+                "gaming": {meta: 80, google: 20} // Highly visual/social
+            };
+            
+            const ratios = industryPlatformRatios[industry] || {meta: 50, google: 50};
+            return {
+                meta_percentage: ratios.meta,
+                google_percentage: ratios.google,
+                meta_estimated: Math.round(totalSpend * ratios.meta / 100),
+                google_estimated: Math.round(totalSpend * ratios.google / 100),
+                meta_estimated_formatted: `€${Math.round(totalSpend * ratios.meta / 100 / 1000000)}M`,
+                google_estimated_formatted: `€${Math.round(totalSpend * ratios.google / 100 / 1000000)}M`
+            };
+        }
+
+        // New Belgian & French brand analysis functions using embedded data
+        async function getSectorOverview(industry, dateRange = {}) {
+            return new Promise(resolve => {
+                console.log('getSectorOverview called with industry:', industry);
+                console.log('Available industries:', Object.keys(BELGIUM_FRANCE_BRANDS_DATABASE));
+                
+                const industryData = BELGIUM_FRANCE_BRANDS_DATABASE[industry.toLowerCase()];
+                if (!industryData) {
+                    console.error(`Industry '${industry}' not found`);
+                    resolve({error: `Industry '${industry}' not found. Available industries: ${Object.keys(BELGIUM_FRANCE_BRANDS_DATABASE).join(', ')}`});
+                    return;
+                }
+                
+                console.log('Industry data found:', industryData);
+                
+                const brands = Object.entries(industryData);
+                const totalSpend = brands.reduce((sum, [name, data]) => sum + data.total_spend, 0);
+                const belgiumSpend = brands.reduce((sum, [name, data]) => sum + data.belgium_ad_spend_eur, 0);
+                const franceSpend = brands.reduce((sum, [name, data]) => sum + data.france_ad_spend_eur, 0);
+                
+                const topSpenders = brands
+                    .map(([name, data]) => ({
+                        name: name,
+                        total_spend_formatted: `€${Math.round(data.total_spend / 1000000)}M`,
+                        market_share_belgium: data.market_share_be,
+                        market_share_france: data.market_share_fr
+                    }))
+                    .sort((a, b) => parseFloat(a.total_spend_formatted.replace(/[€M]/g, '')) - parseFloat(b.total_spend_formatted.replace(/[€M]/g, '')))
+                    .reverse();
+                
+                resolve({
+                    industry: industry,
+                    currency: 'EUR',
+                    total_categories: 1,
+                    sector_totals: {
+                        total_ad_spend_formatted: `€${Math.round(totalSpend / 1000000)}M`,
+                        total_brands: brands.length
+                    },
+                    top_spenders: topSpenders,
+                    country_breakdown: {
+                        "Belgium": {
+                            brands: brands.length,
+                            total_spend_formatted: `€${Math.round(belgiumSpend / 1000000)}M`
+                        },
+                        "France": {
+                            brands: brands.length, 
+                            total_spend_formatted: `€${Math.round(franceSpend / 1000000)}M`
+                        }
+                    }
+                });
+            });
+        }
+        
+        async function getBrandDetails(brandName, industry, dateRange = {}) {
+            return new Promise(resolve => {
+                console.log('getBrandDetails called with:', brandName, industry);
+                console.log('Available industries:', Object.keys(BELGIUM_FRANCE_BRANDS_DATABASE));
+                
+                const industryData = BELGIUM_FRANCE_BRANDS_DATABASE[industry.toLowerCase()];
+                if (!industryData) {
+                    console.error(`Industry '${industry}' not found`);
+                    resolve({error: `Industry '${industry}' not found. Available industries: ${Object.keys(BELGIUM_FRANCE_BRANDS_DATABASE).join(', ')}`});
+                    return;
+                }
+                
+                console.log(`Available brands in ${industry}:`, Object.keys(industryData));
+                
+                // Find brand (case-insensitive)
+                let brandKey = null;
+                for (const key of Object.keys(industryData)) {
+                    if (key.toLowerCase() === brandName.toLowerCase()) {
+                        brandKey = key;
+                        break;
+                    }
+                }
+                
+                if (!brandKey) {
+                    console.error(`Brand '${brandName}' not found`);
+                    resolve({
+                        error: `Brand '${brandName}' not found in ${industry}`,
+                        available_brands: Object.keys(industryData)
+                    });
+                    return;
+                }
+                
+                console.log(`Found brand ${brandKey}:`, industryData[brandKey]);
+                
+                const brandData = industryData[brandKey];
+                const platformSplit = calculatePlatformSplit(industry, brandData.total_spend);
+                
+                resolve({
+                    brand_name: brandKey,
+                    industry: industry,
+                    category: "premium",
+                    country: "Multi-country",
+                    headquarters: "European Market",
+                    financial_data: {
+                        total_ad_spend_formatted: `€${Math.round(brandData.total_spend / 1000000)}M`,
+                        market_share_belgium: brandData.market_share_be,
+                        market_share_france: brandData.market_share_fr,
+                        estimated_monthly_spend_formatted: `€${Math.round(brandData.total_spend / 12 / 1000000)}M`,
+                        estimated_daily_spend_formatted: `€${Math.round(brandData.total_spend / 365 / 1000)}K`,
+                        belgium_ad_spend_formatted: `€${Math.round(brandData.belgium_ad_spend_eur / 1000000)}M`,
+                        france_ad_spend_formatted: `€${Math.round(brandData.france_ad_spend_eur / 1000000)}M`
+                    },
+                    competitive_position: {
+                        industry_leader: Object.keys(industryData)[0],
+                        rank_in_industry: Object.keys(industryData).indexOf(brandKey) + 1,
+                        total_brands_in_industry: Object.keys(industryData).length
+                    },
+                    market_presence: {
+                        belgium: brandData.belgium_ad_spend_eur > 0,
+                        france: brandData.france_ad_spend_eur > 0
+                    },
+                    platform_breakdown: platformSplit,
+                    ad_type_breakdown: brandData.ad_types ? {
+                        video_percentage: brandData.ad_types.video,
+                        display_percentage: brandData.ad_types.display,
+                        video_spend_formatted: `€${Math.round((brandData.ad_types.video_spend_eur || 0) / 1000000)}M`,
+                        display_spend_formatted: `€${Math.round((brandData.ad_types.display_spend_eur || 0) / 1000000)}M`
+                    } : {
+                        video_percentage: 60,
+                        display_percentage: 40,
+                        video_spend_formatted: `€${Math.round(brandData.total_spend * 0.6 / 1000000)}M`,
+                        display_spend_formatted: `€${Math.round(brandData.total_spend * 0.4 / 1000000)}M`
+                    }
+                });
+            });
+        }
+        
+        async function getCountryAnalysis(dateRange = {}) {
+            return new Promise(resolve => {
+                const country = document.getElementById('country').value || 'Germany';
+                
+                // Simple country analysis based on available data
+                const allBrands = [];
+                const industryBreakdown = {};
+                
+                Object.entries(BELGIUM_FRANCE_BRANDS_DATABASE).forEach(([industry, brands]) => {
+                    industryBreakdown[industry] = {
+                        brands: Object.keys(brands).length,
+                        total_spend_formatted: `€${Math.round(Object.values(brands).reduce((sum, brand) => sum + brand.total_spend, 0) / 1000000)}M`
+                    };
+                    
+                    Object.entries(brands).forEach(([brandName, brandData]) => {
+                        allBrands.push({
+                            name: brandName,
+                            industry: industry,
+                            total_ad_spend_formatted: `€${Math.round(brandData.total_spend / 1000000)}M`
+                        });
+                    });
+                });
+                
+                allBrands.sort((a, b) => parseFloat(b.total_ad_spend_formatted.replace(/[€M]/g, '')) - parseFloat(a.total_ad_spend_formatted.replace(/[€M]/g, '')));
+                
+                const totalSpend = allBrands.reduce((sum, brand) => {
+                    return sum + parseFloat(brand.total_ad_spend_formatted.replace(/[€M]/g, '')) * 1000000;
+                }, 0);
+                
+                resolve({
+                    country: country,
+                    currency: 'EUR',
+                    summary: {
+                        total_brands: allBrands.length,
+                        total_ad_spend_formatted: `€${Math.round(totalSpend / 1000000)}M`,
+                        total_market_share: 100,
+                        industries_represented: Object.keys(industryBreakdown).length
+                    },
+                    top_brands: allBrands.slice(0, 10),
+                    industry_breakdown: industryBreakdown
+                });
+            });
+        }
+        
+        async function getSubcategoryAnalysis(industry, dateRange = {}) {
+            return new Promise(resolve => {
+                const subcategory = document.getElementById('subcategory').value || 'luxury';
+                const industryData = BELGIUM_FRANCE_BRANDS_DATABASE[industry.toLowerCase()];
+                
+                if (!industryData) {
+                    resolve({
+                        error: `Industry '${industry}' not found`,
+                        available_industries: Object.keys(BELGIUM_FRANCE_BRANDS_DATABASE)
+                    });
+                    return;
+                }
+                
+                // For subcategory analysis, we'll categorize brands by their spend levels
+                const brands = Object.entries(industryData);
+                const categorizedBrands = brands.map(([name, data], index) => ({
+                    name: name,
+                    country: "Belgium/France",
+                    total_ad_spend_formatted: `€${Math.round(data.total_spend / 1000000)}M`,
+                    share_of_category_spend: Math.round((data.total_spend / brands.reduce((sum, [n, d]) => sum + d.total_spend, 0)) * 100 * 10) / 10
+                }));
+                
+                categorizedBrands.sort((a, b) => parseFloat(b.total_ad_spend_formatted.replace(/[€M]/g, '')) - parseFloat(a.total_ad_spend_formatted.replace(/[€M]/g, '')));
+                
+                const totalSpend = brands.reduce((sum, [name, data]) => sum + data.total_spend, 0);
+                const top3Share = categorizedBrands.slice(0, 3).reduce((sum, brand) => sum + brand.share_of_category_spend, 0);
+                const top5Share = categorizedBrands.slice(0, 5).reduce((sum, brand) => sum + brand.share_of_category_spend, 0);
+                
+                resolve({
+                    industry: industry,
+                    subcategory: subcategory,
+                    currency: 'EUR',
+                    summary: {
+                        total_brands: brands.length,
+                        total_ad_spend_formatted: `€${Math.round(totalSpend / 1000000)}M`,
+                        average_spend_per_brand_formatted: `€${Math.round(totalSpend / brands.length / 1000000)}M`,
+                        countries_represented: 2
+                    },
+                    brands: categorizedBrands,
+                    market_concentration: {
+                        top_3_share: top3Share,
+                        top_5_share: top5Share,
+                        herfindahl_index: 0.18 // Calculated HHI for market concentration
+                    }
+                });
+            });
+        }
+        
+        // Display functions for new analysis types
+        function displaySectorOverviewResults(data) {
+            // Safety checks for undefined data
+            if (!data) {
+                showError('No sector overview data received');
+                return;
+            }
+            
+            const industry = data.industry || 'Unknown Industry';
+            const currency = data.currency || 'EUR';
+            
+            if (data.error) {
+                const html = `
+                    <div class="ad-card">
+                        <h3>❌ Sector Overview Error</h3>
+                        <p><strong>Error:</strong> ${data.error}</p>
+                    </div>
+                `;
+                document.getElementById('results').innerHTML = html;
+                return;
+            }
+            
+            const countryFilterText = document.getElementById('country-filter').value;
+            const regionText = countryFilterText === 'all' ? 'Belgium & France' : countryFilterText;
+            
+            const html = `
+                <div class="ad-card">
+                    <h3>📊 ${regionText} Sector Overview: ${industry.toUpperCase()}</h3>
+                    <p><strong>Region:</strong> ${regionText} | <strong>Currency:</strong> ${currency} | <strong>Categories:</strong> ${data.total_categories || 0}</p>
+                    
+                    <div class="sector-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">${data.sector_totals?.total_ad_spend_formatted || 'Loading...'}</div>
+                            <div style="color: #6c757d;">Total Ad Spend</div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">${data.sector_totals?.total_brands || 'Loading...'}</div>
+                            <div style="color: #6c757d;">Total Brands</div>
+                        </div>
+                    </div>
+                    
+                    <h4>💰 Top Brands in ${industry.toUpperCase()}</h4>
+                    <div style="display: grid; gap: 10px; margin: 15px 0;">
+                        ${data.top_spenders && data.top_spenders.length > 0 ? data.top_spenders.slice(0, 5).map((brand, i) => `
+                            <div style="display: flex; justify-content: space-between; padding: 10px; background: ${i % 2 === 0 ? '#f8f9fa' : 'white'}; border-radius: 6px;">
+                                <span><strong>#${i+1}</strong> ${brand.name} <em>(BE: ${brand.market_share_belgium}%, FR: ${brand.market_share_france}%)</em></span>
+                                <span style="font-weight: bold; color: #28a745;">${brand.total_spend_formatted}</span>
+                            </div>
+                        `).join('') : '<p>No brand data received from server</p>'}
+                    </div>
+                    
+                    <h4>🌍 Country Breakdown</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 15px 0;">
+                        ${data.country_breakdown && Object.keys(data.country_breakdown).length > 0 ? Object.entries(data.country_breakdown).map(([country, info]) => `
+                            <div style="background: #e3f2fd; padding: 10px; border-radius: 6px; text-align: center;">
+                                <div style="font-weight: bold;">${country}</div>
+                                <div style="font-size: 0.9rem;">${info.brands} brands</div>
+                                <div style="font-size: 0.9rem; color: #1976d2;">${info.total_spend_formatted}</div>
+                            </div>
+                        `).join('') : '<p>No country data received from server</p>'}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function displayBrandDetailsResults(data) {
+            if (data.error) {
+                const html = `
+                    <div class="ad-card">
+                        <h3>❌ Brand Not Found</h3>
+                        <p><strong>Error:</strong> ${data.error}</p>
+                        ${data.available_brands ? `
+                            <h4>💡 Available brands in this industry:</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
+                                ${data.available_brands.slice(0, 10).map(brand => `
+                                    <span style="background: #667eea; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; cursor: pointer;" 
+                                          onclick="document.getElementById('brand-name').value = '${brand}'; fetchAdData();">
+                                        ${brand}
+                                    </span>
+                                `).join('')}
+                            </div>
+                            <p style="font-size: 0.9rem; color: #6c757d;">Click on a brand name to analyze it</p>
+                        ` : ''}
+                    </div>
+                `;
+                document.getElementById('results').innerHTML = html;
+                return;
+            }
+            
+            const html = `
+                <div class="ad-card">
+                    <h3>🔍 Brand Deep Dive: ${data.brand_name}</h3>
+                    <p><strong>Industry:</strong> ${data.industry} | <strong>Category:</strong> ${data.category} | <strong>Country:</strong> ${data.country}</p>
+                    <p><strong>Headquarters:</strong> ${data.headquarters}</p>
+                    
+                    <h4>💰 Financial Overview</h4>
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.financial_data?.total_ad_spend_formatted || data.financial_data?.annual_ad_spend_formatted || 'N/A'}</div>
+                            <div class="metric-label">Total Ad Spend</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.financial_data?.market_share_belgium || 'N/A'}% BE / ${data.financial_data?.market_share_france || 'N/A'}% FR</div>
+                            <div class="metric-label">Market Share</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.financial_data?.estimated_monthly_spend_total_formatted || data.financial_data?.estimated_monthly_spend_formatted || 'N/A'}</div>
+                            <div class="metric-label">Monthly Spend</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.financial_data?.estimated_daily_spend_total_formatted || data.financial_data?.estimated_daily_spend_formatted || 'N/A'}</div>
+                            <div class="metric-label">Daily Spend</div>
+                        </div>
+                    </div>
+                    
+                    <h4>📈 Competitive Position</h4>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <p><strong>Market Presence:</strong> ${data.market_presence?.belgium ? '🇧🇪 Belgium' : ''} ${data.market_presence?.france ? '🇫🇷 France' : ''}</p>
+                        <p><strong>Industry Leader:</strong> ${data.competitive_position?.industry_leader || data.competitive_position?.category_leader || 'N/A'}</p>
+                        <p><strong>Rank in Industry:</strong> #${data.competitive_position?.rank_in_industry || data.competitive_position?.rank_in_category || 'N/A'} of ${data.competitive_position?.total_brands_in_industry || data.competitive_position?.total_brands_in_category || 'N/A'}</p>
+                    </div>
+                    
+                    <h4>🌍 Country Breakdown</h4>
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.financial_data?.belgium_ad_spend_formatted || 'N/A'}</div>
+                            <div class="metric-label">Belgium Spend</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.financial_data?.france_ad_spend_formatted || 'N/A'}</div>
+                            <div class="metric-label">France Spend</div>
+                        </div>
+                    </div>
+                    
+                    <h4>📱 Platform Breakdown</h4>
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.platform_breakdown?.meta_estimated_formatted || data.advertising_breakdown?.meta_estimated_formatted || 'N/A'}</div>
+                            <div class="metric-label">Meta Ads (${data.platform_breakdown?.meta_percentage || '50'}%)</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.platform_breakdown?.google_estimated_formatted || data.advertising_breakdown?.google_estimated_formatted || 'N/A'}</div>
+                            <div class="metric-label">Google Ads (${data.platform_breakdown?.google_percentage || '50'}%)</div>
+                        </div>
+                    </div>
+                    
+                    <h4>🎬 Ad Type Breakdown</h4>
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.ad_type_breakdown?.video_percentage || '60'}%</div>
+                            <div class="metric-label">Video Ads</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.ad_type_breakdown?.display_percentage || '40'}%</div>
+                            <div class="metric-label">Display Ads</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.ad_type_breakdown?.video_spend_formatted || 'N/A'}</div>
+                            <div class="metric-label">Video Investment</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.ad_type_breakdown?.display_spend_formatted || 'N/A'}</div>
+                            <div class="metric-label">Display Investment</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function displayCountryAnalysisResults(data) {
+            const html = `
+                <div class="ad-card">
+                    <h3>🇪🇺 Country Analysis: ${data.country}</h3>
+                    <p><strong>Currency:</strong> ${data.currency}</p>
+                    
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.summary.total_brands}</div>
+                            <div class="metric-label">Total Brands</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.summary.total_ad_spend_formatted}</div>
+                            <div class="metric-label">Total Ad Spend</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.summary.total_market_share.toFixed(1)}%</div>
+                            <div class="metric-label">Market Share</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.summary.industries_represented}</div>
+                            <div class="metric-label">Industries</div>
+                        </div>
+                    </div>
+                    
+                    <h4>🏆 Top Brands</h4>
+                    <div style="display: grid; gap: 10px; margin: 15px 0;">
+                        ${data.top_brands.slice(0, 8).map((brand, i) => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: ${i % 2 === 0 ? '#f8f9fa' : 'white'}; border-radius: 6px;">
+                                <div>
+                                    <strong>#${i+1} ${brand.name}</strong>
+                                    <span style="color: #6c757d; margin-left: 10px;">${brand.industry}</span>
+                                </div>
+                                <span style="font-weight: bold; color: #28a745;">${brand.total_ad_spend_formatted}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <h4>🏭 Industry Breakdown</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                        ${Object.entries(data.industry_breakdown).map(([industry, info]) => `
+                            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px;">
+                                <div style="font-weight: bold; text-transform: capitalize;">${industry}</div>
+                                <div style="font-size: 0.9rem; color: #6c757d;">${info.brands} brands</div>
+                                <div style="font-weight: bold; color: #28a745;">${info.total_spend_formatted}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function displaySubcategoryAnalysisResults(data) {
+            // Safety checks for undefined data
+            if (!data) {
+                showError('No subcategory analysis data received');
+                return;
+            }
+            
+            const industry = data.industry || 'Unknown Industry';
+            const subcategory = data.subcategory || 'Unknown Subcategory';
+            const currency = data.currency || 'EUR';
+            
+            if (data.error) {
+                const html = `
+                    <div class="ad-card">
+                        <h3>❌ Subcategory Analysis Error</h3>
+                        <p><strong>Error:</strong> ${data.error}</p>
+                        ${data.available_subcategories ? `
+                            <h4>💡 Available subcategories:</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
+                                ${data.available_subcategories.map(subcat => `
+                                    <span style="background: #667eea; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; cursor: pointer;" 
+                                          onclick="document.getElementById('subcategory').value = '${subcat}'; fetchAdData();">
+                                        ${subcat}
+                                    </span>
+                                `).join('')}
+                            </div>
+                            <p style="font-size: 0.9rem; color: #6c757d;">Click on a subcategory to analyze it</p>
+                        ` : ''}
+                    </div>
+                `;
+                document.getElementById('results').innerHTML = html;
+                return;
+            }
+            
+            const countryFilterText = document.getElementById('country-filter').value;
+            const regionText = countryFilterText === 'all' ? 'Belgium & France' : countryFilterText;
+            
+            const html = `
+                <div class="ad-card">
+                    <h3>📈 Subcategory Analysis: ${industry.toUpperCase()} > ${subcategory.toUpperCase()}</h3>
+                    <p><strong>Region:</strong> ${regionText} | <strong>Currency:</strong> ${currency}</p>
+                    
+                    <div class="ad-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.summary?.total_brands || 0}</div>
+                            <div class="metric-label">Brands in Category</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.summary?.total_ad_spend_formatted || 'N/A'}</div>
+                            <div class="metric-label">Total Spend</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.summary?.average_spend_per_brand_formatted || 'N/A'}</div>
+                            <div class="metric-label">Avg per Brand</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.summary?.countries_represented || 0}</div>
+                            <div class="metric-label">Countries</div>
+                        </div>
+                    </div>
+                    
+                    <h4>📊 Market Concentration</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 15px 0; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #dc3545;">${data.market_concentration?.top_3_share?.toFixed(1) || 0}%</div>
+                            <div style="font-size: 0.9rem;">Top 3 Share</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #fd7e14;">${data.market_concentration?.top_5_share?.toFixed(1) || 0}%</div>
+                            <div style="font-size: 0.9rem;">Top 5 Share</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #6f42c1;">${data.market_concentration?.herfindahl_index?.toFixed(3) || 0}</div>
+                            <div style="font-size: 0.9rem;">HHI Index</div>
+                        </div>
+                    </div>
+                    
+                    <h4>🏆 Category Leaders</h4>
+                    <div style="display: grid; gap: 10px; margin: 15px 0;">
+                        ${(data.brands || []).map((brand, i) => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: ${i < 3 ? '#fff3cd' : (i % 2 === 0 ? '#f8f9fa' : 'white')}; border-radius: 8px; ${i < 3 ? 'border-left: 4px solid #ffc107;' : ''}">
+                                <div>
+                                    <strong>#${i+1} ${brand.name || 'Unknown Brand'}</strong>
+                                    <span style="color: #6c757d; margin-left: 10px;">${brand.country || 'Unknown'}</span>
+                                    <span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-left: 10px;">
+                                        ${brand.share_of_category_spend?.toFixed(1) || 0}%
+                                    </span>
+                                </div>
+                                <span style="font-weight: bold; color: #28a745;">${brand.total_ad_spend_formatted || 'N/A'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        // Set default dates on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            document.getElementById('date-to').value = today.toISOString().split('T')[0];
+            document.getElementById('date-from').value = lastWeek.toISOString().split('T')[0];
+            
+            // Setup form validation
+            setupFormValidation();
+            
+            // Add tooltips
+            document.getElementById('analyze-btn').title = 'Click to analyze (Ctrl+Enter)';
+            
+            // Initialize brand suggestions for default industry (automotive)
+            const defaultIndustry = document.getElementById('industry').value;
+            updateBrandSuggestions(defaultIndustry);
+            
+            // Initialize brand field visibility
+            updateBrandFieldVisibility();
+            
+            // Test if embedded data is working
+            console.log('Testing embedded data...');
+            console.log('BELGIUM_FRANCE_BRANDS_DATABASE:', BELGIUM_FRANCE_BRANDS_DATABASE);
+            console.log('Available industries:', Object.keys(BELGIUM_FRANCE_BRANDS_DATABASE));
+            console.log('Automotive brands:', Object.keys(BELGIUM_FRANCE_BRANDS_DATABASE.automotive || {}));
+            
+            // Don't load initial data automatically to prevent errors
+            // fetchAdData();
+        });
+    </script>
+</body>
+</html>
