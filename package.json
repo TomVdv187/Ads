@@ -1,0 +1,37 @@
+{
+  "name": "ads-transparency-dashboard",
+  "version": "1.0.0",
+  "description": "Real Ads Transparency Dashboard for Belgium & France Markets with live campaign visuals from Meta and Google transparency centers",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "vercel build", 
+    "start": "vercel start",
+    "deploy": "vercel"
+  },
+  "keywords": [
+    "advertising",
+    "transparency", 
+    "meta",
+    "google",
+    "ads",
+    "belgium",
+    "france",
+    "dashboard",
+    "analytics"
+  ],
+  "author": "Ads Transparency Team",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/ads-transparency-dashboard.git"
+  },
+  "homepage": "https://ads-eta-weld.vercel.app"
+}
